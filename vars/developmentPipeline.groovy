@@ -58,6 +58,10 @@ def buildSnapshot(config){
 
     if ( config.buildTool == null ){
         echo 'No build tool declared. Any commands will execute directly in the shell.'
+        for (int i=0; i<config.buildCommands.size(); i++){
+            def command = config.buildCommands[i]
+            sh "${command}" 
+        }
     } else if ( config.buildTool in tools ) {
         def toolHome = tool "${config.buildTool}"
         for (int i=0; i<config.buildCommands.size(); i++){
