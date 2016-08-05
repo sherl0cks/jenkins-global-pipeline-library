@@ -1,4 +1,6 @@
-package com.rhc;
+package com.rhc
+
+import javax.activation.CommandObject;
 
 def buildApplication( config ){
     if ( config.appRootContext ){
@@ -25,8 +27,7 @@ def getBuildTools(){
 }
 
 def startDefaultOpenShiftBuildAndDeploy( config ){
-    def oc = new OpenShiftClient()
-    oc.login( config.ocHost )
+	def oc = new OpenShiftClient()
     oc.startBuild( config.appName, config.projectName )
 }
 
@@ -35,26 +36,42 @@ def executeBuildCommands( config ){
 
     if ( config.buildTool == null ){
         echo 'No build tool declared. Any commands will execute directly in the shell.'
-        executeListOfShellCommands( config )
+        executeListOfShellCommands( config.buildCommands )
     } else if ( config.buildTool in tools ) {
         echo "Using build tool: ${config.buildTool}"
-        executeListOfToolCommands( config )
+        executeListOfToolCommands( config.buildCommands, config.buildTool )
     } else {
         error "${config.buildTool} is currently unsupported. Please select one of ${tools}."
     }
 }
 
-def executeListOfShellCommands( config ){
-    for (int i=0; i<config.buildCommands.size(); i++){
-        def command = config.buildCommands[i]
+def executeListOfShellCommands( commandList ){
+    for (int i=0; i<commandList.size(); i++){
+        def command = commandList[i]
         sh "${command}" 
     }
 }
 
-def executeListOfToolCommands( config ){
-    def toolHome = tool "${config.buildTool}"
-    for (int i=0; i<config.buildCommands.size(); i++){
-        def command = config.buildCommands[i]
+def executeListOfToolCommands( commandList, buildTool ){
+    def toolHome = tool "${buildTool}"
+    for (int i=0; i<commandList.size(); i++){
+        def command = commandList[i]
         sh "${toolHome}/bin/${command}" 
     }
+}
+
+def promoteImage( currentEnv, newEnv, config ){
+	def dockerClient = new DockerClient()
+	
+	def currentImageRepositoryWithVersion = dockerClient.buildRepositoryStringWithVersion( config.dockerRegistry, currentEnv.projectName, config.appName, 'latest' )
+	def newImageRepositoryWithVersion = dockerClient.buildRepositoryStringWithVersion( config.dockerRegistry, newEnv.projectName, config.appName, 'latest' )
+	
+	return dockerClient.promoteImageBetweenRepositories( currentImageRepositoryWithVersion, newImageRepositoryWithVersion )
+}
+
+def login( config ){
+	def oc = new OpenShiftClient()
+	oc.login( config.ocHost )
+	def docker = new DockerClient()
+	docker.login( config.dockerRegistry, oc.getTrimmedUserToken() )
 }

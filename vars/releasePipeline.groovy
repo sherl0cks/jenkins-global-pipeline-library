@@ -7,6 +7,8 @@ def call( body ) {
     body()
 
     def pipelineHelper = new com.rhc.PipelineHelper()
+	
+	
 
 	node {
 
@@ -14,6 +16,7 @@ def call( body ) {
 	checkout scm
 
 	stage 'Build App'
+	pipelineHelper.login( config ) 
 	pipelineHelper.buildApplication( config )
 
 	stage 'Run Tests'
@@ -21,13 +24,19 @@ def call( body ) {
 
 	stage 'Build Image and Deploy to Dev'
 	pipelineHelper.buildAndDeployImage( config )
-
+	
 	// Loop for environments
-	for (int i=0; i<config.envs.size(); i++){
-		def env = config.envs[i].name
-		def msg = config.envs[i].msg
-		stage "Deploy to ${env}"
-		echo "${msg}"
+	for (int i=1; i<config.envs.size(); i++){
+		def envName = config.envs[i].name
+		def deployCommands = config.envs[i].deployCommands
+		stage "Deploy to ${envName}"
+		input "Deploy to ${envName}?"
+		if ( deployCommands != null ){
+			pipelineHelper.executeListOfShellCommands( deployCommands )
+			println( deployCommands )
+		} else {
+			pipelineHelper.promoteImage( config.envs[i-1], config.envs[i], config )
+		}
 	}
 
 /*
