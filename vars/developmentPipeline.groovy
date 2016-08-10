@@ -14,6 +14,7 @@ def call(body) {
         checkout scm
 
         stage 'Build App'
+        pipelineHelper.login( config )
         pipelineHelper.buildApplication( config )
 
         stage 'Build and Deploy Image'

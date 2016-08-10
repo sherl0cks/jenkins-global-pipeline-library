@@ -23,11 +23,11 @@ def buildAndDeployImage( config ){
 }
 
 def getBuildTools(){
-	return ['node-0.10', 'Maven3.3.9'];
+    return ['node-0.10', 'Maven3.3.9'];
 }
 
 def startDefaultOpenShiftBuildAndDeploy( config ){
-	def oc = new OpenShiftClient()
+    def oc = new OpenShiftClient()
     oc.startBuild( config.appName, config.projectName )
 }
 
@@ -61,17 +61,17 @@ def executeListOfToolCommands( commandList, buildTool ){
 }
 
 def promoteImage( currentEnv, newEnv, config ){
-	def dockerClient = new DockerClient()
-	
-	def currentImageRepositoryWithVersion = dockerClient.buildRepositoryStringWithVersion( config.dockerRegistry, currentEnv.projectName, config.appName, 'latest' )
-	def newImageRepositoryWithVersion = dockerClient.buildRepositoryStringWithVersion( config.dockerRegistry, newEnv.projectName, config.appName, 'latest' )
-	
-	return dockerClient.promoteImageBetweenRepositories( currentImageRepositoryWithVersion, newImageRepositoryWithVersion )
+    def dockerClient = new DockerClient()
+
+    def currentImageRepositoryWithVersion = dockerClient.buildRepositoryStringWithVersion( config.dockerRegistry, currentEnv.projectName, config.appName, 'latest' )
+    def newImageRepositoryWithVersion = dockerClient.buildRepositoryStringWithVersion( config.dockerRegistry, newEnv.projectName, config.appName, 'latest' )
+    
+    return dockerClient.promoteImageBetweenRepositories( currentImageRepositoryWithVersion, newImageRepositoryWithVersion )
 }
 
 def login( config ){
-	def oc = new OpenShiftClient()
-	oc.login( config.ocHost )
-	def docker = new DockerClient()
-	docker.login( config.dockerRegistry, oc.getTrimmedUserToken() )
+    def oc = new OpenShiftClient()
+    oc.login( config.ocHost )
+    def docker = new DockerClient()
+    docker.login( config.dockerRegistry, oc.getTrimmedUserToken() )
 }
