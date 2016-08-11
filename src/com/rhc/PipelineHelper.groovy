@@ -18,7 +18,7 @@ def buildAndDeployImage( config ){
         startDefaultOpenShiftBuildAndDeploy( config )
     } else {
         echo 'Found buildImageCommands, executing in shell'
-        executeListOfShellCommands( config )
+        executeListOfShellCommands( config.buildImageCommands )
     }
 }
 
