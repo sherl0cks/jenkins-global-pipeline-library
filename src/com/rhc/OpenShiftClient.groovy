@@ -48,7 +48,9 @@ class OpenShiftClient implements Serializable {
 			println( "Build ${trimmedBuildId} is ${status}")
 			if ( status.equalsIgnoreCase( 'Complete' ) ){
 				break
-			} else{
+			} else if ( status.equalsIgnoreCase( 'Failed' )  ) {
+				throw new Exception( "Build ${trimmedBuildId} Failed! See OpenShift for logs" )
+			} else {
 				if ( timeAlreadySpentWaiting == maxMillisecondsToWait){
 					throw new Exception( "Max interval to poll exceeded - ${maxMillisecondsToWait}" )
 				} else {
