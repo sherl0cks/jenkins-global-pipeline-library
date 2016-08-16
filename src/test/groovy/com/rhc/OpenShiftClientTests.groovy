@@ -5,6 +5,8 @@ import java.util.regex.Pattern
 import org.junit.BeforeClass
 import org.junit.Test
 
+import groovy.json.JsonSlurper;
+
 class OpenShiftClientTests{
 	
 	static String hostName = "env3-1-master.innovation.labs.redhat.com"
@@ -34,7 +36,10 @@ class OpenShiftClientTests{
 	}
 	
 	@Test
-	void shouldWaitUntilBuildIsComplete(){
-		assert false
+	void shouldStartBuildAndWaitUntilBuildIsComplete(){
+		String buildName = openShiftClient.startBuildAndWaitUntilComplete( appName, projectName )
+		String status = openShiftClient.getBuildStatus( buildName, projectName )
+		assert status.equalsIgnoreCase( 'Complete' )
 	}
+	
 }

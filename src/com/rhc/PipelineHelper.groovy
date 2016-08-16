@@ -28,7 +28,7 @@ def getBuildTools(){
 
 def startDefaultOpenShiftBuildAndDeploy( config ){
     def oc = new OpenShiftClient()
-    oc.startBuild( config.appName, config.projectName )
+    oc.startBuildAndWaitUntilComplete( config.appName, config.projectName )
 }
 
 def executeBuildCommands( config ){
