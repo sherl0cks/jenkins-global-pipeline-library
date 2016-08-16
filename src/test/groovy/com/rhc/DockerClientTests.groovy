@@ -7,19 +7,19 @@ import org.junit.Test
 
 class DockerClientTests {
 
-	static String dockerRegistryHost = 'registry.env3-1.innovation.labs.redhat.com'
-	static String openShiftHost = 'env3-1-master.innovation.labs.redhat.com'
-	static String projectName = 'holmes-stage'
-	static String newProjectName = 'holmes-prod'
-	static String imageName = 'infographic-node-app'
+	static final String DOCKER_REGISTRY_HOST = 'registry.env3-1.innovation.labs.redhat.com'
+	static final String OPENSHIFT_HOST = 'env3-1-master.innovation.labs.redhat.com'
+	static final String PROJECT_NAME = 'holmes-stage'
+	static final String NEW_PROJECT_NAME = 'holmes-prod'
+	static final String IMAGE_NAME = 'infographic-node-app'
 	static DockerClient dockerClient = new DockerClient()
 	static OpenShiftClient openShiftClient = new OpenShiftClient()
 
 
 	@BeforeClass
 	static void shouldLoginToRegistry(){
-		openShiftClient.login( openShiftHost )
-		CommandOutput output = dockerClient.login( dockerRegistryHost, openShiftClient.getTrimmedUserToken() )
+		openShiftClient.login( OPENSHIFT_HOST )
+		CommandOutput output = dockerClient.login( DOCKER_REGISTRY_HOST, openShiftClient.getTrimmedUserToken() )
 		assert output.standardOut.contains( 'Login Succeeded' )
 	}
 
@@ -94,7 +94,7 @@ class DockerClientTests {
 	@Test
 	void shouldSuccessfullyPromoteImageBetweenRepositories(){
 		String currentRepoString = getRepositoryGoodStringWithVersion()
-		String newRepoString = dockerClient.buildRepositoryStringWithVersion( dockerRegistryHost, newProjectName, imageName, 'latest' )
+		String newRepoString = dockerClient.buildRepositoryStringWithVersion( DOCKER_REGISTRY_HOST, NEW_PROJECT_NAME, IMAGE_NAME, 'latest' )
 		CommandOutput output = dockerClient.promoteImageBetweenRepositories( currentRepoString, newRepoString )
 		assert output.standardOut.toLowerCase().contains( 'digest' )
 	}
@@ -123,18 +123,18 @@ class DockerClientTests {
 	}
 
 	String getRepositoryGoodString(){
-		return dockerClient.buildRepositoryString( dockerRegistryHost, projectName, imageName )
+		return dockerClient.buildRepositoryString( DOCKER_REGISTRY_HOST, PROJECT_NAME, IMAGE_NAME )
 	}
 
 	String getRepositoryGoodStringWithVersion(){
-		return dockerClient.buildRepositoryStringWithVersion( dockerRegistryHost, projectName, imageName, 'latest' )
+		return dockerClient.buildRepositoryStringWithVersion( DOCKER_REGISTRY_HOST, PROJECT_NAME, IMAGE_NAME, 'latest' )
 	}
 
 	String getRepositoryBadString(){
-		return dockerClient.buildRepositoryString( dockerRegistryHost, projectName, 'foobar' )
+		return dockerClient.buildRepositoryString( DOCKER_REGISTRY_HOST, PROJECT_NAME, 'foobar' )
 	}
 
 	String getRepositoryBadStringWithVersion(){
-		return dockerClient.buildRepositoryStringWithVersion( dockerRegistryHost, projectName, 'foobar', 'latest' )
+		return dockerClient.buildRepositoryStringWithVersion( DOCKER_REGISTRY_HOST, PROJECT_NAME, 'foobar', 'latest' )
 	}
 }

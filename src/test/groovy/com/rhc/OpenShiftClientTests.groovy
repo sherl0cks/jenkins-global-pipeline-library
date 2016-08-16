@@ -9,22 +9,22 @@ import groovy.json.JsonSlurper;
 
 class OpenShiftClientTests{
 	
-	static String hostName = "env3-1-master.innovation.labs.redhat.com"
-	static String appName = "infographic-node-app"
-	static String projectName = "holmes-playground"
-	static OpenShiftClient openShiftClient = new com.rhc.OpenShiftClient()
+	static final String HOST_NAME = "env3-1-master.innovation.labs.redhat.com"
+	static final String APP_NAME = "infographic-node-app"
+	static final String PROJECT_NAME = "holmes-playground"
+	static final OpenShiftClient openShiftClient = new com.rhc.OpenShiftClient()
 	
 	@BeforeClass
 	static void shouldLoginToOpenShift(){
-		openShiftClient.login( hostName )
+		openShiftClient.login( HOST_NAME )
 		CommandOutput output = openShiftClient.getWhoAmI()
 		assert output.standardOut.trim().equals( 'joe' )
 	}
 	
 	@Test
 	void shouldStartBuild(){
-		CommandOutput buildName = openShiftClient.startBuild( appName, projectName )
-		Pattern pattern = ~/${appName}-[1-9]+/
+		CommandOutput buildName = openShiftClient.startBuild( APP_NAME, PROJECT_NAME )
+		Pattern pattern = ~/${APP_NAME}-[1-9]+/
 		assert buildName.standardOut =~ pattern
 	}
 	
@@ -37,8 +37,8 @@ class OpenShiftClientTests{
 	
 	@Test
 	void shouldStartBuildAndWaitUntilBuildIsComplete(){
-		String buildName = openShiftClient.startBuildAndWaitUntilComplete( appName, projectName )
-		String status = openShiftClient.getBuildStatus( buildName, projectName )
+		String buildName = openShiftClient.startBuildAndWaitUntilComplete( APP_NAME, PROJECT_NAME )
+		String status = openShiftClient.getBuildStatus( buildName, PROJECT_NAME )
 		assert status.equalsIgnoreCase( 'Complete' )
 	}
 	
