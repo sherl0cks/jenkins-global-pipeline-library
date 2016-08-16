@@ -1,107 +1,109 @@
 package com.rhc
 
-import org.junit.BeforeClass;
+import java.util.regex.Pattern
+
+import org.junit.BeforeClass
 import org.junit.Test
 
 class DockerClientTests {
 
-	def static dockerRegistryHost = 'registry.env3-1.innovation.labs.redhat.com'
-	def static openShiftHost = 'env3-1-master.innovation.labs.redhat.com'
-	def static projectName = 'holmes-stage'
-	def static newProjectName = 'holmes-prod'
-	def static imageName = 'infographic-node-app'
-	def static dockerClient = new DockerClient()
-	def static openShiftClient = new OpenShiftClient()
+	static String dockerRegistryHost = 'registry.env3-1.innovation.labs.redhat.com'
+	static String openShiftHost = 'env3-1-master.innovation.labs.redhat.com'
+	static String projectName = 'holmes-stage'
+	static String newProjectName = 'holmes-prod'
+	static String imageName = 'infographic-node-app'
+	static DockerClient dockerClient = new DockerClient()
+	static OpenShiftClient openShiftClient = new OpenShiftClient()
 
 
 	@BeforeClass
 	static void shouldLoginToRegistry(){
 		openShiftClient.login( openShiftHost )
-		def CommandOutput output = dockerClient.login( dockerRegistryHost, openShiftClient.getTrimmedUserToken() )
+		CommandOutput output = dockerClient.login( dockerRegistryHost, openShiftClient.getTrimmedUserToken() )
 		assert output.standardOut.contains( 'Login Succeeded' )
 	}
 
 	@Test
 	void shouldFailToPullImage(){
-		def CommandOutput output = dockerClient.pull( getRepositoryBadString() )
+		CommandOutput output = dockerClient.pull( getRepositoryBadString() )
 		assert output.standardErr.contains( 'not found' )
 	}
 
 	@Test
 	void shouldSuccessfullyPullImage(){
-		def CommandOutput output = dockerClient.pull( getRepositoryGoodString() )
+		CommandOutput output = dockerClient.pull( getRepositoryGoodString() )
 		assert output.standardOut.toLowerCase().contains( 'digest' )
 	}
 
 	@Test
 	void shouldFailToPushImage(){
-		def CommandOutput output = dockerClient.push( getRepositoryBadString() )
+		CommandOutput output = dockerClient.push( getRepositoryBadString() )
 		assert output.standardErr.contains( 'Repository does not exist' )
 	}
 
 	@Test
 	void shouldSuccessfullyPushImage(){
-		def CommandOutput output = dockerClient.push( getRepositoryGoodString( ))
+		CommandOutput output = dockerClient.push( getRepositoryGoodString( ))
 		assert output.standardOut.toLowerCase().contains( 'digest' )
 	}
 
 	@Test
 	void shouldFailToTagImage(){
-		def CommandOutput output = dockerClient.tagImage( '1234', getRepositoryBadStringWithVersion() )
+		CommandOutput output = dockerClient.tagImage( '1234', getRepositoryBadStringWithVersion() )
 		assert output.standardErr.toLowerCase().contains( 'no such id: 1234' )
 	}
 
 	@Test
 	void shouldSuccessfullyTagImage(){
-		def CommandOutput imageId = dockerClient.retrieveImageId( getRepositoryGoodStringWithVersion( ) )
-		def CommandOutput output = dockerClient.tagImage( dockerClient.trimImageId( imageId.standardOut ), getRepositoryGoodStringWithVersion() )
+		CommandOutput imageId = dockerClient.retrieveImageId( getRepositoryGoodStringWithVersion( ) )
+		CommandOutput output = dockerClient.tagImage( dockerClient.trimImageId( imageId.standardOut ), getRepositoryGoodStringWithVersion() )
 		assert output.standardErr.empty
 		assert output.standardOut.empty
 	}
 
 	@Test
 	void shouldFailToRetrieveImageId(){
-		def CommandOutput output = dockerClient.retrieveImageId( getRepositoryBadStringWithVersion() )
+		CommandOutput output = dockerClient.retrieveImageId( getRepositoryBadStringWithVersion() )
 		assert output.standardErr.empty
 		assert output.standardOut.empty
 	}
 
 	@Test
 	void shouldSucessfullyRetrieveImageId(){
-		def CommandOutput output = dockerClient.retrieveImageId( getRepositoryGoodStringWithVersion() )
-		def pattern = dockerClient.getImageIdRegex()
+		CommandOutput output = dockerClient.retrieveImageId( getRepositoryGoodStringWithVersion() )
+		Pattern pattern = dockerClient.getImageIdRegex()
 		assert output.standardErr.empty
 		assert dockerClient.trimImageId( output.standardOut ) ==~ pattern
 	}
 
 	@Test
 	void shouldSucessfullyRetrieveImageIdWithLegacyFormat(){
-		def CommandOutput output = dockerClient.retrieveImageId( getRepositoryGoodStringWithVersion(), '1.9.0' )
-		def pattern = dockerClient.getImageIdRegex()
+		CommandOutput output = dockerClient.retrieveImageId( getRepositoryGoodStringWithVersion(), '1.9.0' )
+		Pattern pattern = dockerClient.getImageIdRegex()
 		assert output.standardErr.empty
 		assert dockerClient.trimImageId( output.standardOut ) ==~  pattern
 	}
 
 	@Test
 	void shouldFailToRetrieveImageIdWithLegacyFormat(){
-		def CommandOutput output = dockerClient.retrieveImageId( getRepositoryBadStringWithVersion(), '1.9.0' )
+		CommandOutput output = dockerClient.retrieveImageId( getRepositoryBadStringWithVersion(), '1.9.0' )
 		assert output.standardErr.empty
 		assert output.standardOut.empty
 	}
 
 	@Test
 	void shouldSuccessfullyPromoteImageBetweenRepositories(){
-		def currentRepoString = getRepositoryGoodStringWithVersion()
-		def newRepoString = dockerClient.buildRepositoryStringWithVersion( dockerRegistryHost, newProjectName, imageName, 'latest' )
-		def CommandOutput output = dockerClient.promoteImageBetweenRepositories( currentRepoString, newRepoString )
+		String currentRepoString = getRepositoryGoodStringWithVersion()
+		String newRepoString = dockerClient.buildRepositoryStringWithVersion( dockerRegistryHost, newProjectName, imageName, 'latest' )
+		CommandOutput output = dockerClient.promoteImageBetweenRepositories( currentRepoString, newRepoString )
 		assert output.standardOut.toLowerCase().contains( 'digest' )
 	}
 
 	@Test
 	void shouldTrimImageString(){
-		def CommandOutput imageId = dockerClient.retrieveImageId( getRepositoryGoodStringWithVersion() )
-		def String trimmedImageIdString = dockerClient.trimImageId( imageId.standardOut )
-		def pattern = ~/[0-9a-f]+/
+		CommandOutput imageId = dockerClient.retrieveImageId( getRepositoryGoodStringWithVersion() )
+		String trimmedImageIdString = dockerClient.trimImageId( imageId.standardOut )
+		Pattern pattern = ~/[0-9a-f]+/
 		assert trimmedImageIdString =~ pattern
 	}
 
@@ -116,7 +118,7 @@ class DockerClientTests {
 	@Test
 	void shouldGetDockerVersionTrimmedString(){
 		String versionString = dockerClient.getDockerClientVersionTrimmedString()
-		def pattern = ~/[0-9]+.[0-9]+.[0-9]+/
+		Pattern pattern = ~/[0-9]+.[0-9]+.[0-9]+/
 		assert versionString =~ pattern
 	}
 
