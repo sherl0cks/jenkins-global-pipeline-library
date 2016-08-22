@@ -1,6 +1,5 @@
 package com.rhc
 
-import javax.activation.CommandObject;
 
 def buildApplication( config ){
     if ( config.appRootContext ){
@@ -26,9 +25,32 @@ def getBuildTools(){
     return ['node-0.10', 'Maven3.3.9'];
 }
 
+
+String getLastNameFromJenkinsJobName(){
+	String jobName = "${env.JOB_NAME}"
+	String[] tokens = jobName.split( '-' )
+	String developerLastName = tokens[ tokens.length -1 ]
+	return developerLastName.toLowerCase()
+}
 def startDefaultOpenShiftBuildAndDeploy( config ){
-    def oc = new OpenShiftClient()
-    oc.startBuildAndWaitUntilComplete( config.appName, config.projectName )
+
+	
+	
+	if ( config.containsKey( 'projectName') && config.containsKey( 'envs') ){
+		throw new Exception( "Both projectName and envs cannot be defined! Choose projectName for Dev Pipeline and envs for Release Pipeline." )
+	}
+	
+	OpenShiftClient oc = new OpenShiftClient()
+	if ( config.projectName != null ){
+		String lastName =  getLastNameFromJenkinsJobName()
+		
+		oc.startBuildAndWaitUntilComplete( config.appName, "${config.projectName}-${lastName}" )
+	} else if ( config.envs != null ) {
+		oc.startBuildAndWaitUntilComplete( config.appName, config.envs[0].projectName )
+	} else {
+		throw new Exception( "Something went wrong with your config" )
+	}
+	
 }
 
 def executeBuildCommands( config ){
