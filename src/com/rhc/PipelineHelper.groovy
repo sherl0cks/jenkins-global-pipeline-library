@@ -2,76 +2,77 @@ package com.rhc
 
 import javax.activation.CommandObject;
 
-def buildApplication( config ){
-    if ( config.appRootContext ){
-        dir ( config.appRootContext ){ 
-            executeBuildCommands(config)
-        }
-    } else {
-        executeBuildCommands(config)
-    }
-}
+class PipelineHelper{
+	OpenShiftClient oc = new OpenShiftClient()
+	DockerClient dockerClient = new DockerClient()
+	CommandExecutor commandExecutor = new CommandExecutor()
+	
+	CommandOutput buildApplication( PipelineConfig config ){
+		CommandOutput output = commandExecutor.buildApplication( config )
+	}
 
-def buildAndDeployImage( config ){
-    if ( config.buildImageCommands == null ){
-        echo 'No buildImageCommands, using default OpenShift image build and deploy'
-        startDefaultOpenShiftBuildAndDeploy( config )
-    } else {
-        echo 'Found buildImageCommands, executing in shell'
-        executeListOfShellCommands( config.buildImageCommands )
-    }
-}
+	List<CommandOutput> buildAndDeployImage( PipelineConfig config ){
+		List<CommandOutput> outputs
+		if ( config.buildImageCommands == null ){
+			println 'No buildImageCommands, using default OpenShift image build and deploy'
+			CommandOutput result = oc.startBuildAndWaitUntilComplete( config.appName, config.projectName )
+			outputs = new ArrayList<CommandOutput>()
+			outputs.push( result )
+		} else {
+			println 'Found buildImageCommands, executing in shell'
+			List<CommandOutput> results = executeListOfShellCommands( config.buildImageCommands )
+			outputs = results
+		}
+		return outputs
+	}
 
-def getBuildTools(){
-    return ['node-0.10', 'Maven3.3.9'];
-}
+	String[] getBuildTools(){
+		return ['node-0.10', 'Maven3.3.9'];
+	}
 
-def startDefaultOpenShiftBuildAndDeploy( config ){
-    def oc = new OpenShiftClient()
-    oc.startBuildAndWaitUntilComplete( config.appName, config.projectName )
-}
+	List<CommandOutput> executeBuildCommands( PipelineConfig config ){
+		List<CommandOutput> outputs 
+		String[] tools = getBuildTools()
+		
+		if ( config.buildTool == null ){
+			println 'No build tool declared. Any commands will execute directly in the shell.'
+			outputs = executeListOfShellCommands( config.buildCommands )
+		} else if ( config.buildTool in tools ) {
+			println "Using build tool: ${config.buildTool}"
+			outputs = executeListOfToolCommands( config.buildCommands, config.buildTool )
+		} else {
+			throw new RuntimeException( "${config.buildTool} is currently unsupported. Please select one of ${tools}." )
+		}
+		return outputs
+	}
 
-def executeBuildCommands( config ){
-    def tools = getBuildTools()
+	List<CommandOutput> executeListOfShellCommands( String[] commandList ){
+		List<CommandOutput> outputs = new ArrayList<CommandOutput>()
+		for (int i=0; i<commandList.length; i++){
+			String command = commandList[i]
+			CommandOutput output = commandExecutor.executeInJenkinsOrGroovy( command )
+			outputs.push( output )
+		}
+		return outputs
+	}
 
-    if ( config.buildTool == null ){
-        echo 'No build tool declared. Any commands will execute directly in the shell.'
-        executeListOfShellCommands( config.buildCommands )
-    } else if ( config.buildTool in tools ) {
-        echo "Using build tool: ${config.buildTool}"
-        executeListOfToolCommands( config.buildCommands, config.buildTool )
-    } else {
-        error "${config.buildTool} is currently unsupported. Please select one of ${tools}."
-    }
-}
+	void executeListOfToolCommands( String[] commandList, String buildTool ){
+		String toolHome = commandExecutor.getToolHome( buildTool )
+		for (int i=0; i<commandList.length; i++){
+			def command = commandList[i]
+			commandExecutor.executeInJenkinsOrGroovy( "${toolHome}/bin/${command}" )
+		}
+	}
 
-def executeListOfShellCommands( commandList ){
-    for (int i=0; i<commandList.size(); i++){
-        def command = commandList[i]
-        sh "${command}" 
-    }
-}
+	CommandOutput promoteImage( String currentNamespace, String newNamespace, PipelineConfig config ){
+		String currentImageRepositoryWithVersion = dockerClient.buildRepositoryStringWithVersion( config.dockerRegistry, currentNamespace, config.appName, 'latest' )
+		String newImageRepositoryWithVersion = dockerClient.buildRepositoryStringWithVersion( config.dockerRegistry, newNamespace, config.appName, 'latest' )
 
-def executeListOfToolCommands( commandList, buildTool ){
-    def toolHome = tool "${buildTool}"
-    for (int i=0; i<commandList.size(); i++){
-        def command = commandList[i]
-        sh "${toolHome}/bin/${command}" 
-    }
-}
+		return dockerClient.promoteImageBetweenRepositories( currentImageRepositoryWithVersion, newImageRepositoryWithVersion )
+	}
 
-def promoteImage( currentEnv, newEnv, config ){
-    def dockerClient = new DockerClient()
-
-    def currentImageRepositoryWithVersion = dockerClient.buildRepositoryStringWithVersion( config.dockerRegistry, currentEnv.projectName, config.appName, 'latest' )
-    def newImageRepositoryWithVersion = dockerClient.buildRepositoryStringWithVersion( config.dockerRegistry, newEnv.projectName, config.appName, 'latest' )
-    
-    return dockerClient.promoteImageBetweenRepositories( currentImageRepositoryWithVersion, newImageRepositoryWithVersion )
-}
-
-def login( config ){
-    def oc = new OpenShiftClient()
-    oc.login( config.ocHost )
-    def docker = new DockerClient()
-    docker.login( config.dockerRegistry, oc.getTrimmedUserToken() )
+	void login( PipelineConfig config ){
+		oc.login( config.ocHost )
+		dockerClient.login( config.dockerRegistry, oc.getTrimmedUserToken() )
+	}
 }

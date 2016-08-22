@@ -60,10 +60,10 @@ class OpenShiftClient implements Serializable {
 	}
 
 
-	String startBuildAndWaitUntilComplete( String appName, String projectName ){
+	CommandOutput startBuildAndWaitUntilComplete( String appName, String projectName ){
 		CommandOutput buildName = startBuild( appName, projectName )
 		waitUntilBuildIsComplete( buildName.standardOut, projectName )
-		return buildName.standardOut.trim()
+		return buildName
 	}
 
 	String getBuildStatus( String buildId, String projectName ){

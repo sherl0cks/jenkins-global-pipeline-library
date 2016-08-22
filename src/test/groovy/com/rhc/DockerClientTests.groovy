@@ -1,10 +1,15 @@
 package com.rhc
 
+
 import java.util.regex.Pattern
 
 import org.junit.BeforeClass
 import org.junit.Test
 
+import groovy.transform.TypeChecked;
+
+
+@TypeChecked
 class DockerClientTests {
 
 	static final String DOCKER_REGISTRY_HOST = 'registry.env3-1.innovation.labs.redhat.com'
@@ -12,8 +17,8 @@ class DockerClientTests {
 	static final String PROJECT_NAME = 'holmes-stage'
 	static final String NEW_PROJECT_NAME = 'holmes-prod'
 	static final String IMAGE_NAME = 'infographic-node-app'
-	static DockerClient dockerClient = new DockerClient()
-	static OpenShiftClient openShiftClient = new OpenShiftClient()
+	static final DockerClient dockerClient = new DockerClient()
+	static final OpenShiftClient openShiftClient = new OpenShiftClient()
 
 
 	@BeforeClass

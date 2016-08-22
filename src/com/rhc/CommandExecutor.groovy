@@ -37,7 +37,22 @@ def CommandOutput executeInJenkinsOrGroovy( String command ){
 	}
 }
 
-//def Comma
+// This currently cannot be tested outside of Jenkins runtime
+// we need to add support for the dir DSL or import Jenkins runtime to our unit tests
+def CommandOutput buildApplication( config ){
+    if ( config.appRootContext ){
+        dir ( config.appRootContext ){ 
+            return executeBuildCommands(config)
+        }
+    } else {
+        return executeBuildCommands(config)
+    }
+}
+
+def String getToolHome( String toolName ){
+	return tool( toolName )
+}
+
 
 def getCommandTimeout(){
 	return 600000;
