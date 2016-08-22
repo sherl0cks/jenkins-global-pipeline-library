@@ -54,19 +54,26 @@ class PipelineHelperMockedTests {
 		}
 		mock.expect.verify()
 	}
-	
+
 	@Test
 	void shouldExecuteBuildCommandsInShell(){
-		assert false
+		def mock = new MockFor( CommandExecutor )
+		mock.demand.executeInJenkinsOrGroovy { command -> new CommandOutput( standardOut: command) }
+		mock.demand.executeInJenkinsOrGroovy { command -> new CommandOutput( standardOut: command) }
+		mock.use {
+			PipelineHelper helper = new PipelineHelper()
+			PipelineConfig config = new PipelineConfig()
+			config.buildCommands = [
+				'build command 1',
+				'build command 2'
+			]
+			List<CommandOutput> outputs = helper.executeBuildCommands( config )
+			assert outputs.size() == 2
+			assert outputs.get(0).getStandardOut().equals( 'build command 1' )
+			assert outputs.get(1).getStandardOut().equals( 'build command 2' )
+		}
+		mock.expect.verify()
 	}
-	
-	@Test
-	void shouldExecuteBuildWithTools(){
-		assert false
-	}
-	
-	@Test
-	void shouldFailToExecuteBuildWithTools(){
-		assert false
-	}
+
+	// TODO figure out how to test the "tool" function provided by Jenkins. probably just need to import the runtime instead of mocking for that
 }

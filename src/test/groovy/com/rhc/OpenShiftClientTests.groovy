@@ -13,7 +13,7 @@ class OpenShiftClientTests{
 
 	static final String HOST_NAME = "env3-1-master.innovation.labs.redhat.com"
 	static final String APP_NAME = "infographic-node-app"
-	static final String PROJECT_NAME = "holmes-playground"
+	static final String PROJECT_NAME = "ci-dev"
 	static final OpenShiftClient openShiftClient = new com.rhc.OpenShiftClient()
 
 

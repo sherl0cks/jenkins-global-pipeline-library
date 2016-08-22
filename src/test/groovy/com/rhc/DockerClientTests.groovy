@@ -14,8 +14,8 @@ class DockerClientTests {
 
 	static final String DOCKER_REGISTRY_HOST = 'registry.env3-1.innovation.labs.redhat.com'
 	static final String OPENSHIFT_HOST = 'env3-1-master.innovation.labs.redhat.com'
-	static final String PROJECT_NAME = 'holmes-stage'
-	static final String NEW_PROJECT_NAME = 'holmes-prod'
+	static final String PROJECT_NAME = 'ci-dev'
+	static final String NEW_PROJECT_NAME = 'ci-stage'
 	static final String IMAGE_NAME = 'infographic-node-app'
 	static final DockerClient dockerClient = new DockerClient()
 	static final OpenShiftClient openShiftClient = new OpenShiftClient()
