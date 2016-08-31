@@ -24,6 +24,8 @@ def call( body ) {
 		stage 'Build Image and Deploy to Dev'
 		pipelineHelper.buildAndDeployImage( config )
 
+		
+		
 		// Loop for environments
 		for (int i=1; i<config.envs.size(); i++){
 			def envName = config.envs[i].name
