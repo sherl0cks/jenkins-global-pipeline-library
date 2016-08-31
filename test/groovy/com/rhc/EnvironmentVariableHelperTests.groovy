@@ -34,6 +34,16 @@ class EnvironmentVariableHelperTests {
 		def expectedConfig = getEnvironmentVariableConfig()
 		assert result.equals( expectedConfig )
 	}
+	
+	@Test
+	void shouldFailWhenNoEnvIsSet(){
+		try  {
+			helper.getEnvsForPipeline( null, null )
+			assert false
+		} catch (e){
+			assert true
+		}
+	}
 
 	def getConfig(){
 		def config = [ foo: 'bar', a : 'b', envs : [
