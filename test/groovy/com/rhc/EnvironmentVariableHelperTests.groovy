@@ -8,33 +8,26 @@ class EnvironmentVariableHelperTests {
 	EnvironmentVariableHelper helper = new EnvironmentVariableHelper()
 
 
-	@Before
-	void before() {
-		clearEnvironmentVariables()
-	}
-
 	@Test
 	void shouldReturnEnvsFromConfig(){
 		// given
 		def config = getConfig()
 
 		// when
-		def result = helper.getEnvsFromPipeline( config )
+		def result = helper.getEnvsForPipeline( config, null )
 
 		// then
-		def expectedConfig = getConfig()
-		assert result.equals( expectedConfig )
+		assert result.equals( getEnvs() )
 	}
 
 	@Test
 	void shouldReturnEnvsFromEnvironmentVariable(){
 		// given
 		def config = getConfig()
-		setEnvironmentVariables()
 
 
 		// when
-		def result = helper.getEnvsFromPipeline( config )
+		def result = helper.getEnvsForPipeline( config, getEnvironmentStringifiedVariableConfig() )
 
 
 		// then
@@ -42,46 +35,43 @@ class EnvironmentVariableHelperTests {
 		assert result.equals( expectedConfig )
 	}
 
-	void setEnvironmentVariables(){
-		def envVars = getEnvironmentVariableConfig()
-		System.setProperty( EnvironmentVariableHelper.OVERRIDE_SYS_PROPERTY_FOR_ENVIRONMENTS, getEnvironmentStringifiedVariableConfig()  )
-	}
-
-	void clearEnvironmentVariables(){
-		def foo = System.getProperty(EnvironmentVariableHelper.OVERRIDE_SYS_PROPERTY_FOR_ENVIRONMENTS)
-		if ( foo != null ){
-			System.getProperties().remove( EnvironmentVariableHelper.OVERRIDE_SYS_PROPERTY_FOR_ENVIRONMENTS )
-		}
-	}
-
 	def getConfig(){
-		def config =  [ envs : [
+		def config = [ foo: 'bar', a : 'b', envs : [
 				[name: 'Dev', projectName: 'infographic-dev'],
 				[name: 'Stage', projectName: 'infographic-stage' ],
 				[name: 'Production', projectName: 'infographic-prod' ]
 			]
 		]
+
+		return config
+	}
+
+	def getEnvs(){
+		def config = [
+			[name: 'Dev', projectName: 'infographic-dev'],
+			[name: 'Stage', projectName: 'infographic-stage' ],
+			[name: 'Production', projectName: 'infographic-prod' ]
+		]
+
 		return config
 	}
 
 	def getEnvironmentVariableConfig(){
-		def envVars = [ envs : [
-				[name: 'Dev', projectName: 'foo-dev'],
-				[name: 'Stage', projectName: 'foo-stage' ],
-				[name: 'Demo', projectName: 'foo-demo' ]
-			]
+		def envVars = [
+			[name: 'Dev', projectName: 'foo-dev'],
+			[name: 'Stage', projectName: 'foo-stage' ],
+			[name: 'Demo', projectName: 'foo-demo' ]
 		]
 		return envVars
 	}
-	
-	
+
+
 	def getEnvironmentStringifiedVariableConfig(){
-		def envVars = "[ envs : [\
+		def envVars = "[\
 				[name: 'Dev', projectName: 'foo-dev'],\
 				[name: 'Stage', projectName: 'foo-stage' ],\
 				[name: 'Demo', projectName: 'foo-demo' ]\
-			]\
-		]"
+			]"
 		return envVars
 	}
 }

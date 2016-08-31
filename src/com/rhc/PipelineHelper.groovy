@@ -97,3 +97,8 @@ def login( config ){
     def docker = new DockerClient()
     docker.login( config.dockerRegistry, oc.getTrimmedUserToken() )
 }
+
+def getEnvsForPipeline( config, envVarString ){
+	def helper = new EnvironmentVariableHelper()
+	return helper.getEnvsForPipeline( config, envVarString )
+}

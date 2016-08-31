@@ -10,7 +10,9 @@ def call( body ) {
 
 
 	node {
-
+		// This a simple dump of the env to help with debugging
+		sh 'env'
+		
 		stage 'Code Checkout'
 		checkout scm
 
@@ -26,17 +28,22 @@ def call( body ) {
 
 		
 		
+	}
+	node {
+		def envs = pipelineHelper.getEnvsForPipeline( config, "${env.OPENSHIFT_PROJECTS}" )
+		println envs
+		
 		// Loop for environments
-		for (int i=1; i<config.envs.size(); i++){
-			def envName = config.envs[i].name
-			def deployCommands = config.envs[i].deployCommands
+		for (int i=1; i<envs.size(); i++){
+			def envName = envs[i].name
+			def deployCommands = envs[i].deployCommands
 			stage "Deploy to ${envName}"
 			input "Deploy to ${envName}?"
 			if ( deployCommands != null ){
 				pipelineHelper.executeListOfShellCommands( deployCommands )
 				println( deployCommands )
 			} else {
-				pipelineHelper.promoteImage( config.envs[i-1], config.envs[i], config )
+				pipelineHelper.promoteImage( envs[i-1], envs[i], config )
 			}
 		}
 
