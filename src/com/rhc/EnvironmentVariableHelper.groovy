@@ -5,13 +5,15 @@ class EnvironmentVariableHelper {
 	public static final OVERRIDE_SYS_PROPERTY_FOR_ENVIRONMENTS = 'OPENSHIFT_PROJECTS'
 
 	// If environment variable is set properly, use it over what is passed in the config
-	def getEnvsForPipeline( config, envVarString ){
-		if ( envVarString != null ) {
+	def getEnvsForPipeline( config, String envVarString ){
+		if ( envVarString != null && !envVarString.empty && envVarString != "null" ) {
 			println 'Found OPENSHIFT_PROJECTS env var. Overriding environments declared in Jenkinsfile'			
 			def envVarConfig =  new GroovyShell().evaluate( envVarString )
+			if ( envVarConfig == null ){
+				throw new Exception ("envVarConfig is null: ${envVarConfig} - ${envVarString}")
+			}
 			return envVarConfig
 		} else if ( config != null && config.containsKey( 'envs' ) && config.envs != null ) {
-			println 'No OPENSHIFT_PROJECTS env var found'
 			return config.envs
 		}
 		else {

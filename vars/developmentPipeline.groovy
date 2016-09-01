@@ -18,7 +18,7 @@ def call(body) {
         pipelineHelper.buildApplication( config )
 
         stage 'Build and Deploy Image'
-        pipelineHelper.buildAndDeployImage( config )
+        pipelineHelper.buildAndDeployImage( config, null )
         
         stage 'smoke test snapshot'
 

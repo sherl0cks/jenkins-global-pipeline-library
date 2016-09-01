@@ -24,11 +24,14 @@ def call( body ) {
 		echo "We aren't doing anything here yet" // TODO figure out how to handle this
 
 		stage 'Build Image and Deploy to Dev'
-		pipelineHelper.buildAndDeployImage( config )
+		def envs = pipelineHelper.getEnvsForPipeline( config, "${env.OPENSHIFT_PROJECTS}" )
+		println config
+		println "${env.OPENSHIFT_PROJECTS}"
+		println envs
+		
+		pipelineHelper.buildAndDeployImage( config, envs )
+	}		
 
-		
-		
-	}
 	node {
 		def envs = pipelineHelper.getEnvsForPipeline( config, "${env.OPENSHIFT_PROJECTS}" )
 		println envs

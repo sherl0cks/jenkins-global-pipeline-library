@@ -11,10 +11,10 @@ def buildApplication( config ){
     }
 }
 
-def buildAndDeployImage( config ){
+def buildAndDeployImage( config, envs ){
     if ( config.buildImageCommands == null ){
         echo 'No buildImageCommands, using default OpenShift image build and deploy'
-        startDefaultOpenShiftBuildAndDeploy( config )
+        startDefaultOpenShiftBuildAndDeploy( config, envs )
     } else {
         echo 'Found buildImageCommands, executing in shell'
         executeListOfShellCommands( config.buildImageCommands )
@@ -32,23 +32,18 @@ String getLastNameFromJenkinsJobName(){
 	String developerLastName = tokens[ tokens.length -1 ]
 	return developerLastName.toLowerCase()
 }
-def startDefaultOpenShiftBuildAndDeploy( config ){
+def startDefaultOpenShiftBuildAndDeploy( config, envs ){
 
-	
-	
 	if ( config.containsKey( 'projectName') && config.containsKey( 'envs') ){
 		throw new Exception( "Both projectName and envs cannot be defined! Choose projectName for Dev Pipeline and envs for Release Pipeline." )
 	}
-	
+
 	OpenShiftClient oc = new OpenShiftClient()
 	if ( config.projectName != null ){
 		String lastName =  getLastNameFromJenkinsJobName()
-		
 		oc.startBuildAndWaitUntilComplete( config.appName, "${config.projectName}-${lastName}" )
-	} else if ( config.envs != null ) {
-		oc.startBuildAndWaitUntilComplete( config.appName, config.envs[0].projectName )
 	} else {
-		throw new Exception( "Something went wrong with your config" )
+		oc.startBuildAndWaitUntilComplete( config.appName, envs[0].projectName )
 	}
 	
 }
