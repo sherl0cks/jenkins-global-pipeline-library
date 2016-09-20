@@ -10,6 +10,7 @@
 // Apply the groovy plugin to add support for Groovy
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
+apply plugin: 'maven'
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -28,18 +29,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-sourceSets {
-	main {
-		groovy {
-			srcDirs = ['src']
-		}
-	}
-	test {
-		groovy {
-			srcDirs = ['test/groovy']
-		}
-	}
-}
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '2.14.1' 

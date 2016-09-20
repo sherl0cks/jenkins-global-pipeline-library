@@ -2,14 +2,15 @@ package com.rhc
 
 import groovy.json.JsonSlurper
 
+
 class OpenShiftClient implements Serializable {
 	
 	CommandExecutor commandExecutor = new CommandExecutor()
-	long maxMillisecondsToWait = 60000  
+	long maxMillisecondsToWait = 300000  
 	long waitIntervalInMilliseconds = 1000 
 
-	void login( String host ){
-		String command = "oc login ${host} --insecure-skip-tls-verify=true --username=joe --password=redhat"
+	void login( String host, String userName, String password ){
+		String command = "oc login ${host} --insecure-skip-tls-verify=true --username=${userName} --password=${password} "
 		commandExecutor.executeInJenkinsOrGroovy( command )
 	}
 
